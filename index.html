@@ -11,6 +11,9 @@
             --apple-green: #34c759;
             --apple-gray: #f5f5f7;
             --text-dark: #1d1d1f;
+            --premium-gold: #ff9500;
+            --premium-purple: #af52de;
+            --premium-red: #ff3b30;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -41,7 +44,6 @@
         h1 { font-size: 32px; font-weight: 600; margin: 0 0 10px 0; letter-spacing: -0.8px; }
         .subtitle { font-size: 16px; color: #86868b; margin-bottom: 30px; }
 
-        /* Wheel container */
         .wheel-box {
             position: relative;
             width: 320px;
@@ -86,7 +88,6 @@
         .btn-spin:active { transform: scale(0.95); }
         .btn-spin:disabled { background: #d2d2d7; box-shadow: none; }
 
-        /* Modals */
         .modal {
             display: none;
             position: fixed;
@@ -185,16 +186,17 @@
     const spinBtn = document.getElementById('spinBtn');
     let winDiscount = "";
 
+    // Веса: 5% (50), 10% (10), 25% (0), 30% (0), остальные по 8.
     const sectors = [
         { label: '5%', color: '#ffffff', text: '#0071e3', weight: 50 },
-        { label: '25%', color: '#0071e3', text: '#fff', weight: 0 },
-        { label: '4%', color: '#ffffff', text: '#0071e3', weight: 10 },
-        { label: '1%', color: '#0071e3', text: '#fff', weight: 5 },
-        { label: '30%', color: '#ffffff', text: '#0071e3', weight: 0 },
-        { label: '10%', color: '#ff9500', text: '#fff', weight: 5 },
-        { label: '3%', color: '#ffffff', text: '#0071e3', weight: 5 },
-        { label: '2%', color: '#0071e3', text: '#fff', weight: 5 },
-        { label: 'ЕЩЁ', color: '#8e8e93', text: '#fff', weight: 20 }
+        { label: '25%', color: '#af52de', text: '#fff', weight: 0 },
+        { label: '4%', color: '#ffffff', text: '#0071e3', weight: 8 },
+        { label: '1%', color: '#0071e3', text: '#fff', weight: 8 },
+        { label: '30%', color: '#ff3b30', text: '#fff', weight: 0 },
+        { label: '10%', color: '#ff9500', text: '#fff', weight: 10 },
+        { label: '3%', color: '#ffffff', text: '#0071e3', weight: 8 },
+        { label: '2%', color: '#0071e3', text: '#fff', weight: 8 },
+        { label: 'ЕЩЁ', color: '#8e8e93', text: '#fff', weight: 8 }
     ];
 
     const arc = (2 * Math.PI) / sectors.length;
@@ -222,7 +224,8 @@
 
     function spinWheel() {
         spinBtn.disabled = true;
-        const rand = Math.random() * 100;
+        const totalWeight = sectors.reduce((acc, s) => acc + s.weight, 0);
+        const rand = Math.random() * totalWeight;
         let cumulative = 0;
         let winIndex = 0;
 
@@ -232,7 +235,10 @@
         }
 
         const sectorDeg = 360 / sectors.length;
-        const rotation = 3600 + (360 - (winIndex * sectorDeg)) - (sectorDeg / 2) - 90;
+        // Случайное смещение внутри сектора для реализма
+        const extraPadding = Math.floor(Math.random() * (sectorDeg - 10)) + 5;
+        const rotation = 3600 + (360 - (winIndex * sectorDeg)) - extraPadding - 90;
+        
         canvas.style.transform = `rotate(${rotation}deg)`;
 
         setTimeout(() => {
