@@ -9,11 +9,8 @@
         :root {
             --apple-blue: #0071e3;
             --apple-green: #34c759;
-            --apple-gray: #f5f5f7;
+            --apple-orange: #ff9500;
             --text-dark: #1d1d1f;
-            --premium-gold: #ff9500;
-            --premium-purple: #af52de;
-            --premium-red: #ff3b30;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -42,7 +39,8 @@
 
         .logo { font-weight: 600; font-size: 22px; letter-spacing: 1px; margin-bottom: 5px; }
         h1 { font-size: 32px; font-weight: 600; margin: 0 0 10px 0; letter-spacing: -0.8px; }
-        .subtitle { font-size: 16px; color: #86868b; margin-bottom: 30px; }
+        .subtitle { font-size: 15px; color: #86868b; margin-bottom: 5px; }
+        .limit-info { font-size: 13px; color: #ff3b30; font-weight: 500; margin-bottom: 30px; }
 
         .wheel-box {
             position: relative;
@@ -149,6 +147,7 @@
     <div class="logo">MEGATEH</div>
     <h1>Фортуна</h1>
     <p class="subtitle">Ваш шанс на персональный бонус</p>
+    <p class="limit-info">*скидка действует при покупке до 3 000 TMT</p>
 
     <div class="wheel-box">
         <div class="pointer"></div>
@@ -162,7 +161,7 @@
     <div class="modal-content">
         <h2 style="margin:0">Выигрыш!</h2>
         <div id="winText" style="font-size: 56px; font-weight: 600; color: var(--apple-blue); margin: 15px 0;">5%</div>
-        <p style="color: #86868b; font-size: 15px;">Зарегистрируйте номер для активации скидки</p>
+        <p style="color: #86868b; font-size: 15px;">Зарегистрируйте номер для активации. <br><b>Лимит: до 3 000 манат.</b></p>
         <form id="phoneForm">
             <input type="tel" id="userPhone" placeholder="+993 6..." required>
             <button type="submit" class="btn-action">Продолжить</button>
@@ -174,7 +173,7 @@
     <div class="modal-content">
         <h3 style="margin-top:0">Последний шаг</h3>
         <div class="sms-info">
-            После нажатия кнопки откроется SMS. Отправьте его, чтобы закрепить скидку. Сотрудник активирует её в магазине.
+            Отправьте сформированное SMS. Скидка будет привязана к вашему номеру телефона.
         </div>
         <button onclick="sendSms()" class="btn-action" style="background: var(--apple-blue);">Отправить сообщение</button>
     </div>
@@ -186,17 +185,18 @@
     const spinBtn = document.getElementById('spinBtn');
     let winDiscount = "";
 
-    // Веса: 5% (50), 10% (10), 25% (0), 30% (0), остальные по 8.
+    // Настройка секторов и весов
     const sectors = [
-        { label: '5%', color: '#ffffff', text: '#0071e3', weight: 50 },
-        { label: '25%', color: '#af52de', text: '#fff', weight: 0 },
-        { label: '4%', color: '#ffffff', text: '#0071e3', weight: 8 },
-        { label: '1%', color: '#0071e3', text: '#fff', weight: 8 },
-        { label: '30%', color: '#ff3b30', text: '#fff', weight: 0 },
-        { label: '10%', color: '#ff9500', text: '#fff', weight: 10 },
-        { label: '3%', color: '#ffffff', text: '#0071e3', weight: 8 },
-        { label: '2%', color: '#0071e3', text: '#fff', weight: 8 },
-        { label: 'ЕЩЁ', color: '#8e8e93', text: '#fff', weight: 8 }
+        { label: '1%', color: '#ffffff', text: '#1d1d1f', weight: 5 },
+        { label: '2%', color: '#f5f5f7', text: '#1d1d1f', weight: 5 },
+        { label: '3%', color: '#ffffff', text: '#1d1d1f', weight: 5 },
+        { label: '4%', color: '#f5f5f7', text: '#1d1d1f', weight: 5 },
+        { label: '5%', color: '#0071e3', text: '#ffffff', weight: 50 }, // Шанс 50%
+        { label: '6%', color: '#ffffff', text: '#1d1d1f', weight: 5 },
+        { label: '7%', color: '#f5f5f7', text: '#1d1d1f', weight: 5 },
+        { label: '8%', color: '#ffffff', text: '#1d1d1f', weight: 5 },
+        { label: '9%', color: '#f5f5f7', text: '#1d1d1f', weight: 5 },
+        { label: '10%', color: '#ff9500', text: '#ffffff', weight: 10 } // Шанс 10%
     ];
 
     const arc = (2 * Math.PI) / sectors.length;
@@ -214,9 +214,9 @@
             ctx.translate(300, 300);
             ctx.rotate(angle + arc / 2);
             ctx.fillStyle = s.text;
-            ctx.font = "bold 42px Inter";
+            ctx.font = "bold 40px Inter";
             ctx.textAlign = "right";
-            ctx.fillText(s.label, 260, 15);
+            ctx.fillText(s.label, 270, 15);
             ctx.restore();
         });
     }
@@ -224,36 +224,28 @@
 
     function spinWheel() {
         spinBtn.disabled = true;
+        
         const totalWeight = sectors.reduce((acc, s) => acc + s.weight, 0);
-        const rand = Math.random() * totalWeight;
-        let cumulative = 0;
+        let rand = Math.random() * totalWeight;
         let winIndex = 0;
 
         for (let i = 0; i < sectors.length; i++) {
-            cumulative += sectors[i].weight;
-            if (rand <= cumulative) { winIndex = i; break; }
+            if (rand < sectors[i].weight) {
+                winIndex = i;
+                break;
+            }
+            rand -= sectors[i].weight;
         }
 
         const sectorDeg = 360 / sectors.length;
-        // Случайное смещение внутри сектора для реализма
-        const extraPadding = Math.floor(Math.random() * (sectorDeg - 10)) + 5;
-        const rotation = 3600 + (360 - (winIndex * sectorDeg)) - extraPadding - 90;
+        const rotation = 3600 + (360 - (winIndex * sectorDeg)) - (sectorDeg / 2) - 90;
         
         canvas.style.transform = `rotate(${rotation}deg)`;
 
         setTimeout(() => {
-            const res = sectors[winIndex].label;
-            if (res === 'ЕЩЁ') {
-                alert('Попробуйте еще раз!');
-                spinBtn.disabled = false;
-                canvas.style.transition = 'none';
-                canvas.style.transform = 'rotate(0deg)';
-                setTimeout(() => canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.15, 1)', 50);
-            } else {
-                winDiscount = res;
-                document.getElementById('winText').innerText = res;
-                document.getElementById('winModal').style.display = 'flex';
-            }
+            winDiscount = sectors[winIndex].label;
+            document.getElementById('winText').innerText = winDiscount;
+            document.getElementById('winModal').style.display = 'flex';
         }, 5000);
     }
 
@@ -265,7 +257,7 @@
 
     function sendSms() {
         const targetNumber = "+99361828377";
-        const text = `MEGATEH: Скидка ${winDiscount} подтверждаю. Закрепите за моим номером.`;
+        const text = `MEGATEH: Скидка ${winDiscount} (лимит 3000 TMT) подтверждаю.`;
         
         const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
         const link = `sms:${targetNumber}${isiOS ? '&' : '?'}body=${encodeURIComponent(text)}`;
@@ -275,6 +267,9 @@
         setTimeout(() => {
             document.getElementById('smsModal').style.display = 'none';
             spinBtn.disabled = false;
+            canvas.style.transition = 'none';
+            canvas.style.transform = 'rotate(0deg)';
+            setTimeout(() => canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.15, 1)', 50);
         }, 2000);
     }
 </script>
